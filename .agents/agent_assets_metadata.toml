@@ -1,0 +1,14 @@
+uploads = []
+generated = []
+
+[[outputs]]
+id = "brQgVRO6ymqABQu8SqJAq"
+uri = "file://screenshots/envoi-diaspora.jpg"
+type = "image"
+title = "Expéditeur — DiasporaConnect (Envoi)"
+
+[[outputs]]
+id = "FIbxxTZoN_3BNz6qVh-d6"
+uri = "file://screenshots/reception-benin.jpg"
+type = "image"
+title = "Destinataire — DiasporaConnect (Réception)"

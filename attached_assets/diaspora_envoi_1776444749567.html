@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Envoyer au Bénin - Diaspora</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css">
+    <style>
+        body { background: #F3F4F6; } 
+        .card-header { background: #1E40AF; color: white; font-size: 1.3rem;} 
+        .frais { color: #16A34A; font-weight: bold; }
+        .card-body { font-size: 1.5rem;}
+        .numero input { width: 50%;}
+    </style>
+</head>
+<body>
+    <div class="container" style="max-width: 450px;">
+        <div class="card mt-4 shadow">
+            <div class="card-header text-center">
+                <h3>Envoyer de l'argent au Bénin</h3>
+            </div>
+            <div class="card-body p-4">
+                <form action="" id="formEnvoi">
+                    <div class="mb-3">
+                        <label for="" class="form-label">Montant à envoyer</label>
+                        <div class="input-group">
+                            <input type="number" id="montant" class="form-control" placeholder="100" required>
+                            <select name="" class="form-select" style="max-width: 80px;">
+                                <option value="">EUR</option>
+                                <option value="">USD</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="mb-3 numero">
+                        <label for="" class="form-label">Adresse destinataire</label>
+                        <input type="text" id="destinataire" class="form-control" placeholder="Numéro Mobile Money: +229 .. .. .. .." required>
+                        <div class="form-text" >Le numéro MTN/MOOV Money du bénéficiaire</div>
+                    </div>
+
+                    <div class="alert alert-light border">
+                        <div class="d-flex justify-content-between">
+                            <span>Frais de transfert:</span>
+                            <span class="frais" id="frais">1.50 EUD (1.5%)</span>
+                        </div>
+                        <div class="d-flex justify-content-between">
+                            <span>Taux de change:</span>
+                            <span>1 EUD = 655.96 CFA</span>
+                        </div>
+                        <hr>
+                        <div class="d-flex justify-content-between fw-bold">
+                            <span>Le destinataire reçoit:</span>
+                            <span id="reçu">64,600 CFA</span>
+                        </div>
+                    </div>
+
+                    <button type="submit" class="btn btn-primary w-100 btn-lg" style="background: #1E40AF;">Envoyer maintenant</button>
+                    <p class="text-center mt-2 text-muted small">Transaction sécurisée par blockchain</p>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/ethers@6.13.0/dist/ethers.umd.min.js"></script>
+    <script>
+        const ADRESSE_CONTRAT = "COLLE_ICI_L_ADRESSE_DE_TON_CONTRAT";
+        const ABI_CONTRAT = [
+            "function envoyer(string memory _numberMobileMoney, uint256 _montantUSDC) external",
+            "function usdc() view returns (adresse)"
+        ];
+        const ABI_ERC20 = [
+            "function approve(adresse spender, uint256 amount) returns (boll)",
+            "function decimals() view returns (uint8)"
+        ];
+
+        let provider, signer, contrat, usdc;
+
+        async function init() {
+            if (typeof window.ethereum === 'undefined') {
+                alert('Installe MetaMask pour la démo !');
+                return;
+            }
+            provider = new ethers.BrowserProvider(window.ethereum);
+            await provider.send("eth_requestAccounts", []);
+            signer = await provider.getSigner();
+            contrat = new ethers.Contract(ADRESSE_CONTRAT, ABI_CONTRAT, signer);
+            const adresseUSDC = await contrat.usdc();
+            usdc = new ethers.Contract(adresseUSDC, ABI_ERC20, signer);
+        }
+
+        document.getElementById('montant').addEventListener('input', function() {
+            let montant = parseFloat(this.value) || 0;
+            let frais = (montant * 0.015).toFixed(2);
+            let reçu = ((montant - frais) * 655.96).toFixed(0);
+            document.getElementById('frais').textContent = frais + ' EUR (1.5%)';
+            document.getElementById('recu').textContent = new Intl.NumberFormat('fr-FR').format(reçu) + ' CFA';
+        });
+
+        document.getElementById('formEnvoi').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            await init();
+
+            const montantEUR = parseFloat(document.getElementById('montant').value);
+            const numero = document.getElementById('destinataire').value;
+
+            // 1 EUR = 1.08 USDC pour la démo. USDC a 6 décimales.
+            const _montantUSDC = ethers.parseUnits((montantEUR * 1.08).toFixed(6), 6);
+
+            try {
+                // Etape 1 : Approuver le contrat à dépenser tes USDC
+                const tx1 = await usdc.approve(ADRESSE_CONTRAT, _montantUSDC);
+                alert('1/2 : Approbation USDC envoyée. Attends la confirmation MetaMask...');
+                await tx1.wait();
+
+                // Etape 2 : Appeler la fonction envoyer
+                const tx2 = await contrat.envoyer(numero, _montantUSDC);
+                alert('2/2 : Transfert blockchain envoyé ! Frais 1.5% appliqués. TX: ' + tx2.hash);
+                await tx2.wait();
+                alert('Succès ! Le destinataire peut maintenant voir les fonds.');
+            } catch (err) {
+                console.error(err);
+                alert('Erreur : ' + err.message);
+            }
+        });
+         
+    </script>
+</body>
+</html>
