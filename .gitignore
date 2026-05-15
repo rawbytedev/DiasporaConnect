@@ -47,3 +47,7 @@ Thumbs.db
 # Replit
 .cache/
 .local/
+
+# Database runtime files (BadgerDB)
+badger_data/
+**/badger_data/
