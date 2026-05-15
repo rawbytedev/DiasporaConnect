@@ -3,7 +3,7 @@ modules = ["nodejs-24", "go-1.23", "python-3.11"]
 [deployment]
 router = "application"
 deploymentTarget = "autoscale"
-run = ["./backend/bin/api"]
+run = ["bash", "scripts/start.sh"]
 build = ["bash", "scripts/build.sh"]
 
 [deployment.postBuild]
