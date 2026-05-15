@@ -30,7 +30,7 @@ type Config struct {
 // NewConfig builds a Config by reading environment variables.
 func NewConfig() *Config {
         return &Config{
-                PostgresDSN:          getEnv("DATABASE_URL", "host=localhost user=postgres password=secret dbname=diaspora port=5432 sslmode=disable"),
+                PostgresDSN:          firstEnv("PRODUCTION_DATABASE_URL", "DATABASE_URL", "host=localhost user=postgres password=secret dbname=diaspora port=5432 sslmode=disable"),
                 CacheDir:             getEnv("CACHE_DIR", "./badger_data"),
                 SolanaRPCURL:         getEnv("SOLANA_RPC_URL", "https://api.devnet.solana.com"),
                 SolanaProgramID:      getEnv("SOLANA_PROGRAM_ID", "5GHE14Zmpq5yNwpvHR2ZLaTcSckp6QogCRNm43M3Z9BT"),
