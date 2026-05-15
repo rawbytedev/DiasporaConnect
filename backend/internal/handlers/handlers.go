@@ -11,7 +11,7 @@ import (
 	"encoding/json"
 	"net/http"
 	"strconv"
-
+	"fmt"
 	"golang.org/x/crypto/bcrypt"
 )
 
@@ -113,6 +113,7 @@ func Login(userRepo *repository.UserRepo) http.HandlerFunc {
 		}
 
 		if err := verifyPassword(req.Password, storedHash); err != nil {
+			fmt.Print(req.Password)
 			middleware.JSONError(w, http.StatusUnauthorized, "invalid credentials")
 			return
 		}
