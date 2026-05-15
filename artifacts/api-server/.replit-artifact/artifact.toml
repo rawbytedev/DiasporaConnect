@@ -10,18 +10,18 @@ name = "API Server"
 paths = ["/api"]
 
 [services.development]
-run = "sh -c \"cd ../../ && DATABASE_URL=$DATABASE_URL ./backend/bin/api\""
+run = "sh -c \"DATABASE_URL=$DATABASE_URL /home/runner/workspace/backend/bin/api\""
 
 [services.production]
 
 [services.production.build]
-args = ["sh", "-c", "cd ../../backend && go build -o bin/api ./cmd/api/main.go"]
+args = ["sh", "-c", "cd backend && go build -o bin/api ./cmd/api/main.go"]
 
 [services.production.build.env]
 NODE_ENV = "production"
 
 [services.production.run]
-args = ["sh", "-c", "cd ../../ && ./backend/bin/api"]
+args = ["/home/runner/workspace/backend/bin/api"]
 
 [services.production.run.env]
 PORT = "8080"
