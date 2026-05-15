@@ -25,6 +25,7 @@ import {
 import { useAuth } from "@/context/AuthContext";
 import { useToast } from "@/hooks/use-toast";
 import { api } from "@/lib/api";
+import { fmtNum } from "@/lib/fmt";
 import { useLocation } from "wouter";
 
 type Panel = null | "withdraw" | "kyc";
@@ -112,7 +113,7 @@ export default function Settings() {
       setKycVerified(res.kyc_verified);
       setTransferLimit(res.transfer_limit);
       await refreshAccount();
-      toast({ title: "KYC approuvé !", description: `Votre limite de transfert est maintenant de ${res.transfer_limit.toFixed(2)} USDT.` });
+      toast({ title: "KYC approuvé !", description: `Votre limite de transfert est maintenant de ${fmtNum(res.transfer_limit)} USDT.` });
     } catch (err) {
       toast({ title: "Erreur", description: (err as Error).message, variant: "destructive" });
     } finally {
@@ -228,7 +229,7 @@ export default function Settings() {
             <CheckCircle2 className="w-16 h-16 text-green-400 mx-auto mb-4" />
             <h2 className="text-xl font-bold text-white mb-2">Vérification approuvée !</h2>
             <p className="text-slate-400 text-sm">Votre compte est vérifié.</p>
-            <p className="text-green-400 text-sm mt-2">Limite de transfert : {transferLimit.toFixed(2)} USDT</p>
+            <p className="text-green-400 text-sm mt-2">Limite de transfert : {fmtNum(transferLimit)} USDT</p>
             <Button className="mt-6" onClick={() => { setPanel(null); setKycDone(false); }}>
               Retour aux paramètres
             </Button>
@@ -238,7 +239,7 @@ export default function Settings() {
             <CheckCircle2 className="w-16 h-16 text-green-400 mx-auto mb-4" />
             <h2 className="text-xl font-bold text-white mb-2">KYC approuvé !</h2>
             <p className="text-slate-400 text-sm">Votre vérification d'identité a été soumise.</p>
-            <p className="text-green-400 text-sm mt-2">Limite de transfert : {transferLimit.toFixed(2)} USDT</p>
+            <p className="text-green-400 text-sm mt-2">Limite de transfert : {fmtNum(transferLimit)} USDT</p>
             <Button className="mt-6" onClick={() => { setPanel(null); setKycDone(false); }}>
               Retour aux paramètres
             </Button>
@@ -253,7 +254,7 @@ export default function Settings() {
                 </div>
                 <div className="flex justify-between">
                   <span className="text-slate-400">Limite de transfert</span>
-                  <span className="text-white font-semibold">{transferLimit.toFixed(2)} USDT</span>
+                  <span className="text-white font-semibold">{fmtNum(transferLimit)} USDT</span>
                 </div>
                 <div className="flex justify-between">
                   <span className="text-slate-400">Limite après KYC</span>
@@ -373,7 +374,7 @@ export default function Settings() {
           <div className="flex items-center justify-between">
             <div>
               <p className="text-slate-400 text-xs">Limite de transfert</p>
-              <p className="text-white text-sm font-semibold">{account?.transfer_limit?.toFixed(2) ?? "999.99"} USDT</p>
+              <p className="text-white text-sm font-semibold">{fmtNum(account?.transfer_limit ?? 999.99)} USDT</p>
             </div>
           </div>
           <div>

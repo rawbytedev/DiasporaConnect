@@ -22,6 +22,7 @@ import {
 import { api, Transfer } from "@/lib/api";
 import { useAuth } from "@/context/AuthContext";
 import { useToast } from "@/hooks/use-toast";
+import { fmtNum } from "@/lib/fmt";
 
 function StatusIcon({ status }: { status: Transfer["Status"] }) {
   if (status === "pending") return <Clock className="w-4 h-4 text-yellow-400" />;
@@ -145,11 +146,11 @@ function DetailModal({ transfer, accountId, onClose, onAction }: DetailModalProp
         <div className="space-y-3 text-sm">
           <div className="flex justify-between">
             <span className="text-slate-400">Montant</span>
-            <span className="text-white font-bold">{transfer.AmountUSDT.toFixed(2)} USDT</span>
+            <span className="text-white font-bold">{fmtNum(transfer.AmountUSDT)} USDT</span>
           </div>
           <div className="flex justify-between">
             <span className="text-slate-400">Frais</span>
-            <span className="text-red-400">{transfer.FeesUSDT.toFixed(2)} USDT</span>
+            <span className="text-red-400">{fmtNum(transfer.FeesUSDT)} USDT</span>
           </div>
           <div className="flex justify-between">
             <span className="text-slate-400">Statut</span>
@@ -342,7 +343,7 @@ export default function History() {
                 </div>
                 <div className="text-right shrink-0">
                   <p className={`text-sm font-bold ${isSender ? "text-red-400" : "text-green-400"}`}>
-                    {isSender ? "-" : "+"}{t.AmountUSDT.toFixed(2)} USDT
+                    {isSender ? "-" : "+"}{fmtNum(t.AmountUSDT)} USDT
                   </p>
                   <p className="text-slate-500 text-xs">{statusLabel(t.Status)}</p>
                 </div>

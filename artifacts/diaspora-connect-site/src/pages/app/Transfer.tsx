@@ -25,6 +25,7 @@ import {
 import { Card, CardContent } from "@/components/ui/card";
 import { api, SendTransferResponse } from "@/lib/api";
 import { useToast } from "@/hooks/use-toast";
+import { fmtNum } from "@/lib/fmt";
 import { useLocation } from "wouter";
 
 const TAUX_CFA = 655.96;
@@ -247,13 +248,13 @@ export default function Transfer() {
             <div className="flex justify-between text-sm">
               <span className="text-slate-400">Montant envoyé</span>
               <span className="text-white font-semibold">
-                {result.amount_usdt.toFixed(2)} USDT
+                {fmtNum(result.amount_usdt)} USDT
               </span>
             </div>
             <div className="flex justify-between text-sm">
               <span className="text-slate-400">Frais (1%)</span>
               <span className="text-red-400 font-semibold">
-                -{result.fees_usdt.toFixed(2)} USDT
+                -{fmtNum(result.fees_usdt)} USDT
               </span>
             </div>
             <div className="flex justify-between text-sm">
@@ -332,11 +333,11 @@ export default function Transfer() {
           <CardContent className="pt-6 space-y-4 text-sm">
             <div className="flex justify-between">
               <span className="text-slate-400">Votre limite actuelle</span>
-              <span className="text-white font-semibold">{kycLimit.toFixed(2)} USDT</span>
+              <span className="text-white font-semibold">{fmtNum(kycLimit)} USDT</span>
             </div>
             <div className="flex justify-between">
               <span className="text-slate-400">Montant demandé</span>
-              <span className="text-red-400 font-semibold">{amount.toFixed(2)} USDT</span>
+              <span className="text-red-400 font-semibold">{fmtNum(amount)} USDT</span>
             </div>
             <div className="flex justify-between border-t border-slate-800 pt-3">
               <span className="text-slate-400">Statut KYC</span>
@@ -382,15 +383,15 @@ export default function Transfer() {
           <CardContent className="pt-6 space-y-4">
             <div className="flex justify-between">
               <span className="text-slate-400">Montant</span>
-              <span className="text-white font-bold text-lg">{amount.toFixed(2)} USDT</span>
+              <span className="text-white font-bold text-lg">{fmtNum(amount)} USDT</span>
             </div>
             <div className="flex justify-between text-sm">
               <span className="text-slate-400">Frais DiasporaConnect (1%)</span>
-              <span className="text-red-400">-{fee.toFixed(2)} USDT</span>
+              <span className="text-red-400">-{fmtNum(fee)} USDT</span>
             </div>
             <div className="flex justify-between text-sm">
               <span className="text-slate-400">Le destinataire reçoit</span>
-              <span className="text-green-400 font-semibold">{net.toFixed(2)} USDT</span>
+              <span className="text-green-400 font-semibold">{fmtNum(net)} USDT</span>
             </div>
             <div className="flex justify-between text-sm">
               <span className="text-slate-400">≈ en CFA</span>
@@ -423,7 +424,7 @@ export default function Transfer() {
         <div className="space-y-3">
           <Label className="text-slate-300">Confirmez en tapant le montant exact</Label>
           <LargeAmountConfirm
-            target={amount.toFixed(2)}
+            target={fmtNum(amount)}
             onConfirmed={() => setStep("confirm")}
             onCancel={() => setStep("form")}
             onSend={handleSend}
@@ -451,15 +452,15 @@ export default function Transfer() {
           <CardContent className="pt-6 space-y-4">
             <div className="flex justify-between">
               <span className="text-slate-400">Montant</span>
-              <span className="text-white font-bold text-lg">{amount.toFixed(2)} USDT</span>
+              <span className="text-white font-bold text-lg">{fmtNum(amount)} USDT</span>
             </div>
             <div className="flex justify-between text-sm">
               <span className="text-slate-400">Frais DiasporaConnect (1%)</span>
-              <span className="text-red-400">-{fee.toFixed(2)} USDT</span>
+              <span className="text-red-400">-{fmtNum(fee)} USDT</span>
             </div>
             <div className="flex justify-between text-sm">
               <span className="text-slate-400">Le destinataire reçoit</span>
-              <span className="text-green-400 font-semibold">{net.toFixed(2)} USDT</span>
+              <span className="text-green-400 font-semibold">{fmtNum(net)} USDT</span>
             </div>
             <div className="flex justify-between text-sm">
               <span className="text-slate-400">≈ en CFA</span>
@@ -647,16 +648,16 @@ export default function Transfer() {
             <CardContent className="pt-4 pb-4 space-y-2 text-sm">
               <div className="flex justify-between">
                 <span className="text-slate-400">Montant envoyé</span>
-                <span className="text-white font-semibold">{amount.toFixed(2)} USDT</span>
+                <span className="text-white font-semibold">{fmtNum(amount)} USDT</span>
               </div>
               <div className="flex justify-between">
                 <span className="text-slate-400">Frais (1%)</span>
-                <span className="text-red-400">-{fee.toFixed(2)} USDT</span>
+                <span className="text-red-400">-{fmtNum(fee)} USDT</span>
               </div>
               <div className="flex justify-between border-t border-slate-700 pt-2">
                 <span className="text-slate-300 font-medium">Le destinataire reçoit</span>
                 <div className="text-right">
-                  <p className="text-green-400 font-bold">{net.toFixed(2)} USDT</p>
+                  <p className="text-green-400 font-bold">{fmtNum(net)} USDT</p>
                   <p className="text-slate-400 text-xs">
                     ≈ {new Intl.NumberFormat("fr-FR").format(cfa)} CFA
                   </p>

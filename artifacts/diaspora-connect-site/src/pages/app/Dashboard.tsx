@@ -14,6 +14,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useAuth } from "@/context/AuthContext";
 import { api, BalanceResponse, Transfer } from "@/lib/api";
 import { useToast } from "@/hooks/use-toast";
+import { fmtNum } from "@/lib/fmt";
 
 function statusBadge(status: Transfer["Status"]) {
   const map = {
@@ -102,7 +103,7 @@ export default function Dashboard() {
                 <div className="h-10 w-32 bg-white/20 rounded-lg animate-pulse" />
               ) : (
                 <p className="text-4xl font-black tracking-tight">
-                  {balance?.balance_usdt?.toFixed(2) ?? "0.00"}
+                  {fmtNum(balance?.balance_usdt ?? 0)}
                   <span className="text-xl ml-1 font-semibold opacity-80">USDT</span>
                 </p>
               )}
@@ -166,7 +167,7 @@ export default function Dashboard() {
               >
                 <div>
                   <p className="text-white text-sm font-semibold">
-                    {t.AmountUSDT.toFixed(2)} USDT
+                    {fmtNum(t.AmountUSDT)} USDT
                   </p>
                   <p className="text-slate-400 text-xs">
                     Expire{" "}
@@ -260,7 +261,7 @@ export default function Dashboard() {
                         }`}
                       >
                         {isSender ? "-" : "+"}
-                        {t.AmountUSDT.toFixed(2)} USDT
+                        {fmtNum(t.AmountUSDT)} USDT
                       </p>
                       {statusBadge(t.Status)}
                     </div>
