@@ -104,6 +104,10 @@ export interface WithdrawResponse {
   provider: string;
 }
 
+export interface ModeResponse {
+  mode: "mock" | "devnet";
+}
+
 export const api = {
   health: () => request<{ status: string }>("/api/health"),
 
@@ -168,4 +172,10 @@ export const api = {
       { method: "POST", body: JSON.stringify({ amount_usdt, provider }) },
       true
     ),
+
+  setMode: (mode: "mock" | "devnet") =>
+    request<ModeResponse>("/api/mode", {
+      method: "POST",
+      body: JSON.stringify({ mode }),
+    }),
 };

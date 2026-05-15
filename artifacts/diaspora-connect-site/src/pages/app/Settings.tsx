@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import {
   User,
   Phone,
@@ -33,6 +33,13 @@ export default function Settings() {
   const { toast } = useToast();
   const [, navigate] = useLocation();
   const [panel, setPanel] = useState<Panel>(null);
+  const [backendMode, setBackendMode] = useState<"mock" | "devnet">("devnet");
+  const [modeLoading, setModeLoading] = useState(false);
+
+  useEffect(() => {
+    const current = localStorage.getItem("dc_backend_mode");
+    if (current === "mock" || current === "devnet") setBackendMode(current);
+  }, []);
 
   const [withdrawAmount, setWithdrawAmount] = useState("");
   const [withdrawProvider, setWithdrawProvider] = useState<"mtn" | "moov">("mtn");
@@ -82,6 +89,20 @@ export default function Settings() {
   function handleLogout() {
     logout();
     navigate("/app/auth");
+  }
+
+  async function handleModeChange(nextMode: "mock" | "devnet") {
+    setModeLoading(true);
+    try {
+      await api.setMode(nextMode);
+      localStorage.setItem("dc_backend_mode", nextMode);
+      setBackendMode(nextMode);
+      toast({ title: "Mode mis à jour", description: `Backend en mode ${nextMode}` });
+    } catch (err) {
+      toast({ title: "Erreur", description: (err as Error).message, variant: "destructive" });
+    } finally {
+      setModeLoading(false);
+    }
   }
 
   if (panel === "withdraw") {

@@ -51,7 +51,7 @@ func main() {
 	defer cacheDB.Close()
 
 	// ── Solana client ─────────────────────────────────────────────────────────
-	solClient, err := solana.NewClient(
+	realSolClient, err := solana.NewClient(
 		cfg.SolanaRPCURL,
 		dbPost,
 		cfg.AdminPrivateKey,
@@ -62,6 +62,7 @@ func main() {
 	if err != nil {
 		log.Fatalf("solana client: %v", err)
 	}
+	solClient := solana.NewRuntimeClient(realSolClient)
 
 	// ── Repositories ──────────────────────────────────────────────────────────
 	userRepo := repository.NewUserRepo(cacheDB, dbPost, solClient)
@@ -77,6 +78,7 @@ func main() {
 	mux.HandleFunc("/api/register", handlers.Register(userRepo))
 	mux.HandleFunc("/api/login", handlers.Login(userRepo))
 	mux.HandleFunc("/api/verify-otp", handlers.VerifyOTP(userRepo))
+	mux.HandleFunc("/api/mode", handlers.SetRuntimeMode())
 
 	// Health check
 	mux.HandleFunc("/api/health", func(w http.ResponseWriter, r *http.Request) {
