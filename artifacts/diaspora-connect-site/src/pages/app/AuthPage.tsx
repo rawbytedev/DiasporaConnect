@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useLocation } from "wouter";
-import { Globe, ArrowLeft, Eye, EyeOff, PhoneCall } from "lucide-react";
+import { Globe, ArrowLeft, Eye, EyeOff, PhoneCall, Copy, Check } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -19,6 +19,8 @@ export default function AuthPage() {
   const [name, setName] = useState("");
   const [password, setPassword] = useState("");
   const [otp, setOtp] = useState("");
+  const [devOtp, setDevOtp] = useState("");
+  const [copied, setCopied] = useState(false);
   const [showPw, setShowPw] = useState(false);
   const [loading, setLoading] = useState(false);
   const [pendingPhone, setPendingPhone] = useState("");
@@ -40,10 +42,10 @@ export default function AuthPage() {
     e.preventDefault();
     setLoading(true);
     try {
-      await register(phone, name, password);
+      const result = await register(phone, name, password);
       setPendingPhone(phone);
+      setDevOtp(result.otp || "");
       setStep("otp");
-      toast({ title: "Compte créé !", description: "Vérifiez votre OTP envoyé par SMS." });
     } catch (err) {
       toast({ title: "Erreur d'inscription", description: (err as Error).message, variant: "destructive" });
     } finally {
@@ -59,11 +61,19 @@ export default function AuthPage() {
       toast({ title: "Téléphone vérifié !", description: "Connectez-vous maintenant." });
       setStep("login");
       setPhone(pendingPhone);
+      setDevOtp("");
     } catch (err) {
       toast({ title: "OTP invalide", description: (err as Error).message, variant: "destructive" });
     } finally {
       setLoading(false);
     }
+  }
+
+  function handleCopyOtp() {
+    navigator.clipboard.writeText(devOtp).then(() => {
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    });
   }
 
   return (
@@ -237,12 +247,36 @@ export default function AuthPage() {
               <PhoneCall className="w-12 h-12 text-primary mx-auto mb-3" />
               <h1 className="text-xl font-bold text-white">Vérification OTP</h1>
               <p className="text-slate-400 text-sm mt-2">
-                Entrez le code envoyé au {pendingPhone}
+                Votre code de vérification pour {pendingPhone}
               </p>
             </div>
 
+            {devOtp && (
+              <div className="rounded-xl border border-amber-500/40 bg-amber-500/10 p-4">
+                <p className="text-xs font-medium text-amber-400 uppercase tracking-wider mb-2 text-center">
+                  Mode développement — code OTP
+                </p>
+                <div className="flex items-center justify-center gap-3">
+                  <span className="text-3xl font-mono font-bold tracking-[0.3em] text-amber-300">
+                    {devOtp}
+                  </span>
+                  <button
+                    type="button"
+                    onClick={handleCopyOtp}
+                    className="text-amber-400 hover:text-amber-200 transition-colors"
+                    title="Copier le code"
+                  >
+                    {copied ? <Check className="w-5 h-5" /> : <Copy className="w-5 h-5" />}
+                  </button>
+                </div>
+                <p className="text-xs text-amber-500/70 text-center mt-2">
+                  L'envoi SMS sera activé en production
+                </p>
+              </div>
+            )}
+
             <div className="space-y-2">
-              <Label className="text-slate-300">Code OTP</Label>
+              <Label className="text-slate-300">Entrez le code OTP</Label>
               <Input
                 placeholder="123456"
                 value={otp}

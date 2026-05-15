@@ -16,7 +16,7 @@ interface AuthState {
 
 interface AuthContextValue extends AuthState {
   login: (phone: string, password: string) => Promise<void>;
-  register: (phone: string, name: string, password: string) => Promise<{ phone: string }>;
+  register: (phone: string, name: string, password: string) => Promise<{ phone: string; otp: string }>;
   verifyOTP: (phone: string, otp: string) => Promise<void>;
   logout: () => void;
   refreshAccount: () => Promise<void>;
@@ -68,8 +68,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const register = useCallback(
     async (phone: string, name: string, password: string) => {
-      await api.register(phone, name, password);
-      return { phone };
+      const res = await api.register(phone, name, password);
+      return { phone, otp: res.dev_otp };
     },
     []
   );

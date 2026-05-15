@@ -5,6 +5,7 @@ import (
 	"Diaspora/internal/middleware"
 	"Diaspora/internal/models"
 	"Diaspora/internal/repository"
+	"Diaspora/internal/utils"
 	"crypto/sha256"
 	"encoding/hex"
 	"encoding/json"
@@ -22,7 +23,8 @@ type RegisterRequest struct {
 }
 
 // Register creates a new user account, hashes the password, generates a
-// Solana keypair, and stores everything in the database.
+// Solana keypair, stores everything, generates an OTP and returns it in the
+// response (displayed on-screen until SMS sending is wired up).
 //
 //	POST /api/register
 //	Content-Type: application/json
@@ -58,10 +60,19 @@ func Register(userRepo *repository.UserRepo) http.HandlerFunc {
 			return
 		}
 
+		// Generate and store OTP. Returned in the response so the frontend can
+		// display it on-screen (SMS delivery will replace this later).
+		otp := utils.GenerateOTP()
+		if err := userRepo.StoreOTP(req.PhoneNumber, otp); err != nil {
+			middleware.JSONError(w, http.StatusInternalServerError, "failed to generate OTP")
+			return
+		}
+
 		middleware.JSONResponse(w, http.StatusCreated, map[string]interface{}{
 			"message":       "account created successfully",
 			"user_id":       user.ID,
 			"solana_pubkey": user.SolanaPubkey,
+			"dev_otp":       otp,
 		})
 	}
 }
@@ -159,7 +170,7 @@ type WithdrawRequest struct {
 	Provider   string  `json:"provider"` // "mtn" | "moov"
 }
 
-// Withdraw debits the user's USDT balance and triggers a mobile-money payout.
+// Withdraw debits the user's USDC balance and triggers a mobile-money payout.
 //
 //	POST /api/withdraw
 //	Authorization: Bearer <token>
@@ -206,10 +217,10 @@ func Withdraw(userRepo *repository.UserRepo, mmClient MobileMoneyClient) http.Ha
 		}
 
 		middleware.JSONResponse(w, http.StatusOK, map[string]interface{}{
-			"message":        "withdrawal initiated",
-			"mobile_tx_id":   txID,
-			"amount_usdt":    req.AmountUSDT,
-			"provider":       provider,
+			"message":      "withdrawal initiated",
+			"mobile_tx_id": txID,
+			"amount_usdt":  req.AmountUSDT,
+			"provider":     provider,
 		})
 	}
 }
@@ -225,9 +236,6 @@ type MobileMoneyClient interface {
 // Password helpers
 // ---------------------------------------------------------------------------
 
-// hashPassword returns a bcrypt hash of the SHA-256 digest of password.
-// Using SHA-256 first ensures bcrypt sees a fixed-length input regardless of
-// the original password length.
 func hashPassword(password string) (string, error) {
 	digest := sha256.Sum256([]byte(password))
 	hashed, err := bcrypt.GenerateFromPassword(digest[:], bcrypt.DefaultCost)
@@ -237,8 +245,6 @@ func hashPassword(password string) (string, error) {
 	return hex.EncodeToString(hashed), nil
 }
 
-// verifyPassword compares a plaintext password against the stored hex-encoded
-// bcrypt hash.
 func verifyPassword(password, storedHex string) error {
 	hashed, err := hex.DecodeString(storedHex)
 	if err != nil {

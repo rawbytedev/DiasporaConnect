@@ -1,0 +1,3 @@
+# Wallet keypair JSON files — NEVER commit these.
+# They contain private keys. Fund the corresponding public addresses on devnet.
+*.json

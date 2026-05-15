@@ -1,0 +1,12 @@
+[programs.devnet]
+DiasporaConnect = "5GHE14Zmpq5yNwpvHR2ZLaTcSckp6QogCRNm43M3Z9BT"
+
+[registry]
+url = "https://api.anchor-lang.com"
+
+[provider]
+cluster = "devnet"
+wallet = "../../wallets/admin.json"
+
+[scripts]
+test = "npx ts-mocha -p ./tsconfig.json -t 1000000 tests/**/*.ts"

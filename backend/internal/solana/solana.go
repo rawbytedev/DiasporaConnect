@@ -53,7 +53,7 @@ type Client struct {
 	db             *db.PostgresDB
 	admin          solana.PrivateKey
 	programID      solana.PublicKey
-	usdtMint       solana.PublicKey
+	usdcMint       solana.PublicKey
 	treasuryWallet solana.PublicKey // wallet that owns the fee-treasury token account
 }
 
@@ -64,12 +64,12 @@ var _ ClientInterface = (*Client)(nil)
 //
 //   - adminBase58      – platform co-signer key; may be empty in development
 //   - programIDBase58  – deployed DiasporaConnect program ID
-//   - usdtMintBase58   – USDT mint address on the target cluster
+//   - usdcMintBase58   – USDT mint address on the target cluster
 //   - treasuryBase58   – treasury wallet public key (owner of the fee ATA)
 func NewClient(
 	endpoint string,
 	database *db.PostgresDB,
-	adminBase58, programIDBase58, usdtMintBase58, treasuryBase58 string,
+	adminBase58, programIDBase58, usdcMintBase58, treasuryBase58 string,
 ) (*Client, error) {
 	var admin solana.PrivateKey
 	if adminBase58 != "" && adminBase58 != "your_admin_private_key" {
@@ -89,13 +89,13 @@ func NewClient(
 		programID = pk
 	}
 
-	var usdtMint solana.PublicKey
-	if usdtMintBase58 != "" {
-		pk, err := solana.PublicKeyFromBase58(usdtMintBase58)
+	var usdcMint solana.PublicKey
+	if usdcMintBase58 != "" {
+		pk, err := solana.PublicKeyFromBase58(usdcMintBase58)
 		if err != nil {
-			return nil, fmt.Errorf("invalid USDT mint: %w", err)
+			return nil, fmt.Errorf("invalid USDC mint: %w", err)
 		}
-		usdtMint = pk
+		usdcMint = pk
 	}
 
 	var treasuryWallet solana.PublicKey
@@ -112,7 +112,7 @@ func NewClient(
 		db:             database,
 		admin:          admin,
 		programID:      programID,
-		usdtMint:       usdtMint,
+		usdcMint:       usdcMint,
 		treasuryWallet: treasuryWallet,
 	}, nil
 }
@@ -176,11 +176,11 @@ func (c *Client) InitiateTransfer(senderID, recipientID uint, netAmount, fees fl
 	}
 
 	// Derive Associated Token Accounts.
-	senderATA, err := findATA(senderPubkey, c.usdtMint)
+	senderATA, err := findATA(senderPubkey, c.usdcMint)
 	if err != nil {
 		return "", 0, fmt.Errorf("derive sender ATA: %w", err)
 	}
-	feeTreasuryATA, err := findATA(c.treasuryWallet, c.usdtMint)
+	feeTreasuryATA, err := findATA(c.treasuryWallet, c.usdcMint)
 	if err != nil {
 		return "", 0, fmt.Errorf("derive treasury ATA: %w", err)
 	}
@@ -200,7 +200,7 @@ func (c *Client) InitiateTransfer(senderID, recipientID uint, netAmount, fees fl
 		solana.NewAccountMeta(senderATA, true, false),        // sender_token_account – mut
 		solana.NewAccountMeta(recipientPubkey, false, false), // recipient       – readonly
 		solana.NewAccountMeta(feeTreasuryATA, true, false),   // fee_treasury    – mut
-		solana.NewAccountMeta(c.usdtMint, false, false),      // mint            – readonly
+		solana.NewAccountMeta(c.usdcMint, false, false),      // mint            – readonly
 		solana.NewAccountMeta(escrowPDA, true, false),        // escrow_account  – mut (init)
 		solana.NewAccountMeta(vaultPDA, true, false),         // escrow_vault    – mut (init)
 		solana.NewAccountMeta(splTokenProgram, false, false), // token_program
@@ -268,11 +268,11 @@ func (c *Client) ClaimTransfer(txHash string) error {
 		return err
 	}
 
-	recipientATA, err := findATA(recipientPubkey, c.usdtMint)
+	recipientATA, err := findATA(recipientPubkey, c.usdcMint)
 	if err != nil {
 		return fmt.Errorf("derive recipient ATA: %w", err)
 	}
-	feeTreasuryATA, err := findATA(c.treasuryWallet, c.usdtMint)
+	feeTreasuryATA, err := findATA(c.treasuryWallet, c.usdcMint)
 	if err != nil {
 		return fmt.Errorf("derive treasury ATA: %w", err)
 	}
@@ -290,7 +290,7 @@ func (c *Client) ClaimTransfer(txHash string) error {
 		solana.NewAccountMeta(escrowPDA, true, false),        // escrow_account         – mut
 		solana.NewAccountMeta(vaultPDA, true, false),         // escrow_vault           – mut
 		solana.NewAccountMeta(feeTreasuryATA, true, false),   // fee_treasury           – mut
-		solana.NewAccountMeta(c.usdtMint, false, false),      // mint                   – readonly
+		solana.NewAccountMeta(c.usdcMint, false, false),      // mint                   – readonly
 		solana.NewAccountMeta(splTokenProgram, false, false), // token_program
 	}
 
@@ -350,7 +350,7 @@ func (c *Client) RefundTransfer(txHash string) error {
 		return err
 	}
 
-	senderATA, err := findATA(senderPubkey, c.usdtMint)
+	senderATA, err := findATA(senderPubkey, c.usdcMint)
 	if err != nil {
 		return fmt.Errorf("derive sender ATA: %w", err)
 	}
@@ -367,7 +367,7 @@ func (c *Client) RefundTransfer(txHash string) error {
 		solana.NewAccountMeta(recipientPubkey, false, false), // recipient            – readonly
 		solana.NewAccountMeta(escrowPDA, true, false),        // escrow_account       – mut
 		solana.NewAccountMeta(vaultPDA, true, false),         // escrow_vault         – mut
-		solana.NewAccountMeta(c.usdtMint, false, false),      // mint                 – readonly
+		solana.NewAccountMeta(c.usdcMint, false, false),      // mint                 – readonly
 		solana.NewAccountMeta(splTokenProgram, false, false), // token_program
 	}
 
@@ -429,8 +429,8 @@ func (c *Client) MarkTransferAsCompleted(hash string) error {
 // with a USDT mint and treasury wallet — both are required to build complete
 // on-chain instructions.
 func (c *Client) requireMintAndTreasury() error {
-	if c.usdtMint.IsZero() {
-		return fmt.Errorf("USDT_MINT_ADDRESS is not configured")
+	if c.usdcMint.IsZero() {
+		return fmt.Errorf("USDC_MINT_ADDRESS is not configured")
 	}
 	if c.treasuryWallet.IsZero() {
 		return fmt.Errorf("TREASURY_PUBLIC_KEY is not configured")

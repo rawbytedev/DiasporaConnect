@@ -29,6 +29,7 @@ export interface RegisterResponse {
   message: string;
   user_id: number;
   solana_pubkey: string;
+  dev_otp: string;
 }
 
 export interface LoginResponse {

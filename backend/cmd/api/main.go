@@ -56,7 +56,7 @@ func main() {
 		dbPost,
 		cfg.AdminPrivateKey,
 		cfg.SolanaProgramID,
-		cfg.USDTMintAddress,
+		cfg.USDCMintAddress,
 		cfg.TreasuryPublicKey,
 	)
 	if err != nil {
