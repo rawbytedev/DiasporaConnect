@@ -9,6 +9,7 @@ import {
   CheckCircle2,
   ArrowDownToLine,
   AlertTriangle,
+  Loader2,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -36,10 +37,41 @@ export default function Settings() {
   const [backendMode, setBackendMode] = useState<"mock" | "devnet">("devnet");
   const [modeLoading, setModeLoading] = useState(false);
 
+  const [kycVerified, setKycVerified] = useState(false);
+  const [transferLimit, setTransferLimit] = useState(999.99);
+  const [kycStatusLoading, setKycStatusLoading] = useState(false);
+
   useEffect(() => {
     const current = localStorage.getItem("dc_backend_mode");
     if (current === "mock" || current === "devnet") setBackendMode(current);
   }, []);
+
+  // Load KYC status on mount and when panel opens
+  useEffect(() => {
+    if (panel === "kyc") {
+      loadKYCStatus();
+    }
+  }, [panel]);
+
+  useEffect(() => {
+    if (account) {
+      setKycVerified(account.kyc_verified);
+      setTransferLimit(account.transfer_limit);
+    }
+  }, [account]);
+
+  async function loadKYCStatus() {
+    setKycStatusLoading(true);
+    try {
+      const res = await api.getKYCStatus();
+      setKycVerified(res.kyc_verified);
+      setTransferLimit(res.transfer_limit);
+    } catch (err) {
+      toast({ title: "Erreur", description: (err as Error).message, variant: "destructive" });
+    } finally {
+      setKycStatusLoading(false);
+    }
+  }
 
   const [withdrawAmount, setWithdrawAmount] = useState("");
   const [withdrawProvider, setWithdrawProvider] = useState<"mtn" | "moov">("mtn");
@@ -75,10 +107,12 @@ export default function Settings() {
     e.preventDefault();
     setKycLoading(true);
     try {
-      await new Promise((r) => setTimeout(r, 1200));
+      const res = await api.submitKYC();
       setKycDone(true);
+      setKycVerified(res.kyc_verified);
+      setTransferLimit(res.transfer_limit);
       await refreshAccount();
-      toast({ title: "Profil mis à jour !" });
+      toast({ title: "KYC approuvé !", description: `Votre limite de transfert est maintenant de ${res.transfer_limit.toFixed(2)} USDT.` });
     } catch (err) {
       toast({ title: "Erreur", description: (err as Error).message, variant: "destructive" });
     } finally {
@@ -185,17 +219,49 @@ export default function Settings() {
           <p className="text-slate-400 text-sm mt-1">Renseignez vos informations personnelles</p>
         </div>
 
-        {kycDone ? (
+        {kycStatusLoading ? (
+          <div className="flex items-center justify-center py-10">
+            <Loader2 className="w-8 h-8 text-slate-500 animate-spin" />
+          </div>
+        ) : kycVerified ? (
           <div className="text-center py-10">
             <CheckCircle2 className="w-16 h-16 text-green-400 mx-auto mb-4" />
-            <h2 className="text-xl font-bold text-white mb-2">Profil mis à jour !</h2>
+            <h2 className="text-xl font-bold text-white mb-2">Vérification approuvée !</h2>
+            <p className="text-slate-400 text-sm">Votre compte est vérifié.</p>
+            <p className="text-green-400 text-sm mt-2">Limite de transfert : {transferLimit.toFixed(2)} USDT</p>
+            <Button className="mt-6" onClick={() => { setPanel(null); setKycDone(false); }}>
+              Retour aux paramètres
+            </Button>
+          </div>
+        ) : kycDone ? (
+          <div className="text-center py-10">
+            <CheckCircle2 className="w-16 h-16 text-green-400 mx-auto mb-4" />
+            <h2 className="text-xl font-bold text-white mb-2">KYC approuvé !</h2>
             <p className="text-slate-400 text-sm">Votre vérification d'identité a été soumise.</p>
+            <p className="text-green-400 text-sm mt-2">Limite de transfert : {transferLimit.toFixed(2)} USDT</p>
             <Button className="mt-6" onClick={() => { setPanel(null); setKycDone(false); }}>
               Retour aux paramètres
             </Button>
           </div>
         ) : (
           <form onSubmit={handleKYC} className="space-y-5">
+            <Card className="bg-slate-900 border-slate-800">
+              <CardContent className="pt-6 pb-4 space-y-4 text-sm">
+                <div className="flex justify-between">
+                  <span className="text-slate-400">Statut actuel</span>
+                  <span className="text-red-400 font-semibold">Non vérifié</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-slate-400">Limite de transfert</span>
+                  <span className="text-white font-semibold">{transferLimit.toFixed(2)} USDT</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-slate-400">Limite après KYC</span>
+                  <span className="text-green-400 font-semibold">10 000 USDT</span>
+                </div>
+              </CardContent>
+            </Card>
+
             <div className="space-y-2">
               <Label className="text-slate-300">Nom complet</Label>
               <Input
@@ -293,6 +359,23 @@ export default function Settings() {
               </button>
             </div>
           </div>
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-slate-400 text-xs">KYC</p>
+              <p className={`font-semibold text-sm ${account?.kyc_verified ? "text-green-400" : "text-yellow-400"}`}>
+                {account?.kyc_verified ? "Vérifié" : "Non vérifié"}
+              </p>
+            </div>
+            {account?.kyc_verified && (
+              <CheckCircle2 className="w-4 h-4 text-green-400" />
+            )}
+          </div>
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-slate-400 text-xs">Limite de transfert</p>
+              <p className="text-white text-sm font-semibold">{account?.transfer_limit?.toFixed(2) ?? "999.99"} USDT</p>
+            </div>
+          </div>
           <div>
             <p className="text-slate-400 text-xs">Membre depuis</p>
             <p className="text-white text-sm">
@@ -331,10 +414,17 @@ export default function Settings() {
               </div>
               <div>
                 <p className="text-white text-sm font-semibold">Vérification d'identité (KYC)</p>
-                <p className="text-slate-500 text-xs">Augmentez vos limites de transfert</p>
+                <p className="text-slate-500 text-xs">
+                  {account?.kyc_verified
+                    ? "Compte vérifié — limite 10 000 USDT"
+                    : "Augmentez vos limites de transfert"}
+                </p>
               </div>
             </div>
-            <ChevronRight className="w-4 h-4 text-slate-500" />
+            <div className="flex items-center gap-2">
+              {account?.kyc_verified && <CheckCircle2 className="w-4 h-4 text-green-400" />}
+              <ChevronRight className="w-4 h-4 text-slate-500" />
+            </div>
           </button>
         </CardContent>
       </Card>
@@ -350,7 +440,7 @@ export default function Settings() {
       </Button>
 
       <p className="text-center text-slate-600 text-xs pb-4">
-        DiasporaConnect MVP · v0.1.0 · Solana Devnet
+        DiasporaConnect MVP · v0.2.0 · Solana Devnet
       </p>
     </div>
   );

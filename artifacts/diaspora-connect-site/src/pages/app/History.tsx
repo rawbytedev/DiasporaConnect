@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import {
   RefreshCw,
   ArrowDownToLine,
@@ -8,6 +8,7 @@ import {
   Filter,
   Copy,
   ExternalLink,
+  MessageSquareText,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -30,6 +31,64 @@ function StatusIcon({ status }: { status: Transfer["Status"] }) {
 
 function statusLabel(status: Transfer["Status"]) {
   return { pending: "En attente", claimed: "Réclamé", refunded: "Remboursé" }[status];
+}
+
+function ExpiryBar({ expiresAt }: { expiresAt: string }) {
+  const [remaining, setRemaining] = useState("");
+  const [pct, setPct] = useState(100);
+  const expired = new Date(expiresAt) < new Date();
+
+  const update = useCallback(() => {
+    const now = new Date().getTime();
+    const end = new Date(expiresAt).getTime();
+    const start = end - 7 * 24 * 60 * 60 * 1000;
+    const total = end - start;
+    const left = end - now;
+
+    if (left <= 0) {
+      setRemaining("Expiré");
+      setPct(0);
+      return;
+    }
+
+    const days = Math.floor(left / (1000 * 60 * 60 * 24));
+    const hours = Math.floor((left % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+    const mins = Math.floor((left % (1000 * 60 * 60)) / (1000 * 60));
+
+    if (days > 0) setRemaining(`${days}j ${hours}h restantes`);
+    else if (hours > 0) setRemaining(`${hours}h ${mins}m restantes`);
+    else setRemaining(`${mins}m restantes`);
+
+    setPct(Math.max(0, Math.min(100, (left / total) * 100)));
+  }, [expiresAt]);
+
+  useEffect(() => {
+    update();
+    const id = setInterval(update, 60000);
+    return () => clearInterval(id);
+  }, [update]);
+
+  if (expired) {
+    return (
+      <div className="mt-2">
+        <div className="h-1.5 w-full bg-slate-800 rounded-full overflow-hidden">
+          <div className="h-full bg-red-500 rounded-full" style={{ width: "0%" }} />
+        </div>
+        <p className="text-red-400 text-xs mt-1">Expiré</p>
+      </div>
+    );
+  }
+
+  const colorClass = pct > 50 ? "bg-green-500" : pct > 20 ? "bg-yellow-500" : "bg-red-500";
+
+  return (
+    <div className="mt-2">
+      <div className="h-1.5 w-full bg-slate-800 rounded-full overflow-hidden">
+        <div className={`h-full ${colorClass} rounded-full transition-all duration-500`} style={{ width: `${pct}%` }} />
+      </div>
+      <p className="text-slate-500 text-xs mt-1">{remaining}</p>
+    </div>
+  );
 }
 
 interface DetailModalProps {
@@ -100,6 +159,15 @@ function DetailModal({ transfer, accountId, onClose, onAction }: DetailModalProp
             <span className="text-slate-400">Rôle</span>
             <span className="text-white">{isSender ? "Expéditeur" : "Destinataire"}</span>
           </div>
+          {transfer.Note && (
+            <div className="bg-slate-800/60 rounded-lg px-3 py-2">
+              <div className="flex items-center gap-1.5 text-slate-400 text-xs mb-1">
+                <MessageSquareText className="w-3 h-3" />
+                Message
+              </div>
+              <p className="text-white text-sm">{transfer.Note}</p>
+            </div>
+          )}
           <div className="flex justify-between">
             <span className="text-slate-400">Créé le</span>
             <span className="text-white">{new Date(transfer.CreatedAt).toLocaleString("fr-FR")}</span>
@@ -111,6 +179,12 @@ function DetailModal({ transfer, accountId, onClose, onAction }: DetailModalProp
               {expired && " (expiré)"}
             </span>
           </div>
+          {transfer.Status === "pending" && (
+            <div>
+              <span className="text-slate-400">Temps restant</span>
+              <ExpiryBar expiresAt={transfer.ExpiresAt} />
+            </div>
+          )}
           {transfer.ClaimedAt && (
             <div className="flex justify-between">
               <span className="text-slate-400">Réclamé le</span>
@@ -255,10 +329,16 @@ export default function History() {
                       {isSender ? "Envoyé" : "Reçu"}
                     </p>
                     <StatusIcon status={t.Status} />
+                    {t.Note && (
+                      <MessageSquareText className="w-3 h-3 text-slate-500" />
+                    )}
                   </div>
                   <p className="text-slate-500 text-xs truncate">
                     {new Date(t.CreatedAt).toLocaleDateString("fr-FR")} · #{t.ID}
                   </p>
+                  {t.Status === "pending" && (
+                    <ExpiryBar expiresAt={t.ExpiresAt} />
+                  )}
                 </div>
                 <div className="text-right shrink-0">
                   <p className={`text-sm font-bold ${isSender ? "text-red-400" : "text-green-400"}`}>
