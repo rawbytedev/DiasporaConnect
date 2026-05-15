@@ -1,0 +1,108 @@
+2026-05-15 20:08:33.79
+da72fe4e
+System
+starting artifact processes for monorepo deployment
+2026-05-15 20:08:33.79
+da72fe4e
+System
+waiting for runnable artifact ports ports=[8080]
+2026-05-15 20:08:33.79
+da72fe4e
+System
+registered static handler for artifact path=/ publicDir=artifacts/diaspora-connect-site/dist/public
+2026-05-15 20:08:33.79
+da72fe4e
+System
+forwarding local port 0 to external port 80 (mapped as 1104)
+2026-05-15 20:08:33.79
+da72fe4e
+System
+metasidecar: loaded enterprise status from environment is_enterprise=false
+2026-05-15 20:08:33.79
+da72fe4e
+System
+starting up user application
+2026-05-15 20:08:33.79
+da72fe4e
+System
+baseline ports snapshot before artifact start ports=[1104]
+2026-05-15 20:08:33.79
+da72fe4e
+System
+starting artifact processes count=1
+2026-05-15 20:08:33.79
+da72fe4e
+System
+starting artifact process artifact=artifacts/api-server args=[/home/runner/workspace/backend/bin/api] port=8080
+2026-05-15 20:08:33.80
+da72fe4e
+System
+failed to start artifact process artifact=artifacts/api-server error=fork/exec /home/runner/workspace/backend/bin/api: no such file or directory
+2026-05-15 20:08:33.80
+da72fe4e
+System
+all artifact processes stopped
+2026-05-15 20:08:33.80
+da72fe4e
+System
+failed to start artifact processes, cleaning up
+2026-05-15 20:08:33.80
+da72fe4e
+System
+run command failed
+2026-05-15 20:19:36.69
+48c5c567
+System
+starting up user application
+2026-05-15 20:19:36.69
+48c5c567
+System
+artifact mode enabled static=1 runnable=1
+2026-05-15 20:19:36.69
+48c5c567
+System
+starting artifact processes for monorepo deployment
+2026-05-15 20:19:36.69
+48c5c567
+System
+metasidecar: loaded enterprise status from environment is_enterprise=false
+2026-05-15 20:19:36.69
+48c5c567
+System
+forwarding local port 0 to external port 80 (mapped as 1104)
+2026-05-15 20:19:36.69
+48c5c567
+System
+registered static handler for artifact path=/ publicDir=artifacts/diaspora-connect-site/dist/public
+2026-05-15 20:19:36.69
+48c5c567
+System
+waiting for runnable artifact ports ports=[8080]
+2026-05-15 20:19:36.69
+48c5c567
+System
+baseline ports snapshot before artifact start ports=[]
+2026-05-15 20:19:36.69
+48c5c567
+System
+starting artifact process args=[/home/runner/workspace/backend/bin/api] port=8080 artifact=artifacts/api-server
+2026-05-15 20:19:36.69
+48c5c567
+System
+starting artifact processes count=1
+2026-05-15 20:19:36.70
+48c5c567
+System
+failed to start artifact process error=fork/exec /home/runner/workspace/backend/bin/api: no such file or directory artifact=artifacts/api-server
+2026-05-15 20:19:36.70
+48c5c567
+System
+all artifact processes stopped
+2026-05-15 20:19:36.70
+48c5c567
+System
+failed to start artifact processes, cleaning up
+2026-05-15 20:19:36.70
+48c5c567
+System
+run command failed

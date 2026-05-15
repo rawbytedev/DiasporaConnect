@@ -15,13 +15,14 @@ kind = "api"
   [services.production]
 
   [services.production.build]
-  args = ["sh", "-c", "cd /home/runner/workspace/backend && go build -buildvcs=false -o bin/api ./cmd/api/"]
+  args = ["sh", "-c", "cd /home/runner/workspace/backend && CGO_ENABLED=0 go build -buildvcs=false -o bin/api ./cmd/api/"]
 
   [services.production.build.env]
   NODE_ENV = "production"
+  CGO_ENABLED = "0"
 
   [services.production.run]
-  args = ["/home/runner/workspace/backend/bin/api"]
+  args = ["bash", "-c", "test -f /home/runner/workspace/backend/bin/api && exec /home/runner/workspace/backend/bin/api || (cd /home/runner/workspace/backend && CGO_ENABLED=0 go build -buildvcs=false -o bin/api ./cmd/api/ && exec ./bin/api)"]
 
   [services.production.run.env]
   PORT = "8080"
