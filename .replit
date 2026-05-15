@@ -77,8 +77,3 @@ externalPort = 3000
 [[ports]]
 localPort = 23480
 externalPort = 3002
-
-[userenv]
-
-[userenv.production]
-PRODUCTION_DATABASE_URL = "postgresql://neondb_owner:npg_fZ79IUXehlrx@ep-proud-dawn-aqpzcy6e-pooler.c-8.us-east-1.aws.neon.tech/neondb?sslmode=require&channel_binding=require"
