@@ -46,6 +46,8 @@ export interface AccountResponse {
   name: string;
   phone_number: string;
   solana_pubkey: string;
+  kyc_verified: boolean;
+  transfer_limit: number;
   created_at: string;
 }
 
@@ -63,6 +65,7 @@ export interface Transfer {
   FeesUSDT: number;
   Status: "pending" | "claimed" | "refunded";
   SolanaTxHash: string;
+  Note?: string;
   CreatedAt: string;
   ExpiresAt: string;
   ClaimedAt: string | null;
@@ -80,6 +83,7 @@ export interface SendTransferResponse {
   amount_usdt: number;
   fees_usdt: number;
   recipient_phone: string;
+  note: string;
   status: string;
   expires_at: string;
 }
@@ -106,6 +110,18 @@ export interface WithdrawResponse {
 
 export interface ModeResponse {
   mode: "mock" | "devnet";
+}
+
+export interface KYCStatusResponse {
+  kyc_verified: boolean;
+  transfer_limit: number;
+  confirm_threshold: number;
+}
+
+export interface KYCSubmitResponse {
+  kyc_verified: boolean;
+  transfer_limit: number;
+  message: string;
 }
 
 export const api = {
@@ -145,10 +161,10 @@ export const api = {
   getTransfer: (id: number) =>
     request<Transfer>(`/api/transfers/detail?id=${id}`, {}, true),
 
-  sendTransfer: (recipient_phone: string, amount_usdt: number) =>
+  sendTransfer: (recipient_phone: string, amount_usdt: number, note = "") =>
     request<SendTransferResponse>(
       "/api/transfer",
-      { method: "POST", body: JSON.stringify({ recipient_phone, amount_usdt }) },
+      { method: "POST", body: JSON.stringify({ recipient_phone, amount_usdt, note }) },
       true
     ),
 
@@ -177,6 +193,16 @@ export const api = {
     request<{ name: string; phone_number: string }>(
       `/api/user/lookup?phone=${encodeURIComponent(phone)}`,
       {},
+      true
+    ),
+
+  getKYCStatus: () =>
+    request<KYCStatusResponse>("/api/kyc/status", {}, true),
+
+  submitKYC: () =>
+    request<KYCSubmitResponse>(
+      "/api/kyc/submit",
+      { method: "POST", body: JSON.stringify({}) },
       true
     ),
 

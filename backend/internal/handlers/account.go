@@ -26,11 +26,13 @@ func GetAccount(userRepo *repository.UserRepo) http.HandlerFunc {
 		}
 
 		middleware.JSONResponse(w, http.StatusOK, map[string]interface{}{
-			"id":            user.ID,
-			"name":          user.Name,
-			"phone_number":  user.PhoneNumber,
-			"solana_pubkey": user.SolanaPubkey,
-			"created_at":    user.CreatedAt,
+			"id":             user.ID,
+			"name":           user.Name,
+			"phone_number":   user.PhoneNumber,
+			"solana_pubkey":  user.SolanaPubkey,
+			"kyc_verified":   user.KYCVerified,
+			"transfer_limit": transferLimitForUser(user.KYCVerified),
+			"created_at":     user.CreatedAt,
 		})
 	}
 }
@@ -55,8 +57,6 @@ func GetBalance(userRepo *repository.UserRepo, solClient solana.ClientInterface)
 
 		balance, err := solClient.GetTokenBalance(user.SolanaPubkey)
 		if err != nil {
-			// Balance may be unavailable when the Solana node is unreachable or
-			// the user has no USDT token account yet.  Return 0 with context.
 			middleware.JSONResponse(w, http.StatusOK, map[string]interface{}{
 				"solana_pubkey": user.SolanaPubkey,
 				"balance_usdt":  0.0,

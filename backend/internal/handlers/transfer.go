@@ -10,10 +10,18 @@ import (
 	"time"
 )
 
+const (
+	// KYCThreshold is the minimum transfer amount (USDT) that requires KYC verification.
+	KYCThreshold = 1000.0
+	// ConfirmThreshold is the minimum transfer amount that triggers the extra confirmation step (frontend only).
+	ConfirmThreshold = 500.0
+)
+
 // TransferRequest is the JSON body for POST /api/transfer.
 type TransferRequest struct {
 	RecipientPhone string  `json:"recipient_phone"`
 	AmountUSDT     float64 `json:"amount_usdt"`
+	Note           string  `json:"note"`
 }
 
 // SendTransfer initiates a USDT escrow transfer on the Solana blockchain.
@@ -43,6 +51,18 @@ func SendTransfer(userRepo *repository.UserRepo, transferRepo *repository.Transf
 			return
 		}
 
+		sender, err := userRepo.GetUserByID(r.Context(), userID)
+		if err != nil {
+			middleware.JSONError(w, http.StatusNotFound, "sender not found")
+			return
+		}
+
+		// Enforce KYC for large transfers.
+		if req.AmountUSDT >= KYCThreshold && !sender.KYCVerified {
+			middleware.JSONError(w, http.StatusForbidden, "kyc_required: transfers of 1000 USDT or more require identity verification")
+			return
+		}
+
 		recipient, err := userRepo.GetUserByPhone(r.Context(), req.RecipientPhone)
 		if err != nil {
 			middleware.JSONError(w, http.StatusNotFound, "recipient not found")
@@ -53,17 +73,18 @@ func SendTransfer(userRepo *repository.UserRepo, transferRepo *repository.Transf
 			return
 		}
 
-		// 1 % platform fee.
 		fees := req.AmountUSDT * 0.01
 		netAmount := req.AmountUSDT - fees
 
-		// Submit the on-chain initiate_transfer instruction.
-		// The returned nonce must be persisted alongside the transaction hash so
-		// ClaimTransfer / RefundTransfer can reconstruct the escrow PDA.
 		txHash, nonce, err := solClient.InitiateTransfer(userID, recipient.ID, netAmount, fees)
 		if err != nil {
 			middleware.JSONError(w, http.StatusInternalServerError, "blockchain error: "+err.Error())
 			return
+		}
+
+		note := req.Note
+		if len(note) > 200 {
+			note = note[:200]
 		}
 
 		transfer := &models.Transfer{
@@ -73,6 +94,7 @@ func SendTransfer(userRepo *repository.UserRepo, transferRepo *repository.Transf
 			FeesUSDT:     fees,
 			SolanaTxHash: txHash,
 			EscrowNonce:  nonce,
+			Note:         note,
 			Status:       "pending",
 			ExpiresAt:    time.Now().Add(7 * 24 * time.Hour),
 		}
@@ -91,6 +113,7 @@ func SendTransfer(userRepo *repository.UserRepo, transferRepo *repository.Transf
 			"amount_usdt":     netAmount,
 			"fees_usdt":       fees,
 			"recipient_phone": req.RecipientPhone,
+			"note":            note,
 			"status":          "pending",
 			"expires_at":      transfer.ExpiresAt,
 		})
