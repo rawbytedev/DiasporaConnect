@@ -53,6 +53,21 @@ func getEnv(key, fallback string) string {
         return fallback
 }
 
+// firstEnv returns the value of the first non-empty environment variable in the list,
+// falling back to the final string argument as the default.
+func firstEnv(keys ...string) string {
+        if len(keys) == 0 {
+                return ""
+        }
+        fallback := keys[len(keys)-1]
+        for _, k := range keys[:len(keys)-1] {
+                if v := os.Getenv(k); v != "" {
+                        return v
+                }
+        }
+        return fallback
+}
+
 func (c *Config) Validate() error {
         return nil
 }
