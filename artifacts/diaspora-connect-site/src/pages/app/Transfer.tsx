@@ -1,10 +1,13 @@
-import { useState } from "react";
+import { useState, useEffect, useRef } from "react";
 import {
   Send,
   CheckCircle2,
   AlertTriangle,
   Copy,
   ExternalLink,
+  UserCheck,
+  UserX,
+  Loader2,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -24,6 +27,7 @@ const TAUX_CFA = 655.96;
 const FEE_PCT = 0.01;
 
 type Step = "form" | "confirm" | "success";
+type LookupState = "idle" | "loading" | "found" | "not_found";
 
 export default function Transfer() {
   const { toast } = useToast();
@@ -35,10 +39,41 @@ export default function Transfer() {
   const [loading, setLoading] = useState(false);
   const [result, setResult] = useState<SendTransferResponse | null>(null);
 
+  const [recipientName, setRecipientName] = useState<string | null>(null);
+  const [lookupState, setLookupState] = useState<LookupState>("idle");
+  const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
   const amount = parseFloat(amountStr) || 0;
   const fee = amount * FEE_PCT;
   const net = amount - fee;
   const cfa = Math.round(net * TAUX_CFA);
+
+  useEffect(() => {
+    if (debounceRef.current) clearTimeout(debounceRef.current);
+
+    const phone = recipientPhone.trim();
+    if (phone.length < 8) {
+      setLookupState("idle");
+      setRecipientName(null);
+      return;
+    }
+
+    setLookupState("loading");
+    debounceRef.current = setTimeout(async () => {
+      try {
+        const res = await api.lookupUser(phone);
+        setRecipientName(res.name);
+        setLookupState("found");
+      } catch {
+        setRecipientName(null);
+        setLookupState("not_found");
+      }
+    }, 600);
+
+    return () => {
+      if (debounceRef.current) clearTimeout(debounceRef.current);
+    };
+  }, [recipientPhone]);
 
   function copyTx() {
     if (result?.tx_hash) {
@@ -69,6 +104,8 @@ export default function Transfer() {
     setRecipientPhone("");
     setAmountStr("");
     setResult(null);
+    setRecipientName(null);
+    setLookupState("idle");
   }
 
   if (step === "success" && result) {
@@ -102,9 +139,12 @@ export default function Transfer() {
             </div>
             <div className="flex justify-between text-sm">
               <span className="text-slate-400">Destinataire</span>
-              <span className="text-white font-semibold">
-                {result.recipient_phone}
-              </span>
+              <div className="text-right">
+                {recipientName && (
+                  <p className="text-white font-semibold">{recipientName}</p>
+                )}
+                <p className="text-slate-400 text-xs">{result.recipient_phone}</p>
+              </div>
             </div>
             <div className="flex justify-between text-sm">
               <span className="text-slate-400">Statut</span>
@@ -177,7 +217,12 @@ export default function Transfer() {
             </div>
             <div className="border-t border-slate-800 pt-3 flex justify-between text-sm">
               <span className="text-slate-400">Destinataire</span>
-              <span className="text-white">{recipientPhone}</span>
+              <div className="text-right">
+                {recipientName && (
+                  <p className="text-white font-semibold">{recipientName}</p>
+                )}
+                <p className="text-slate-400 text-xs">{recipientPhone}</p>
+              </div>
             </div>
             <div className="flex justify-between text-sm">
               <span className="text-slate-400">Opérateur Mobile Money</span>
@@ -228,9 +273,36 @@ export default function Transfer() {
             onChange={(e) => setRecipientPhone(e.target.value)}
             className="bg-slate-800 border-slate-700 text-white placeholder:text-slate-500 h-12"
           />
-          <p className="text-slate-500 text-xs">
-            Le destinataire doit être inscrit sur DiasporaConnect
-          </p>
+
+          {lookupState === "loading" && (
+            <div className="flex items-center gap-2 text-slate-400 text-xs">
+              <Loader2 className="w-3.5 h-3.5 animate-spin" />
+              <span>Recherche du destinataire…</span>
+            </div>
+          )}
+
+          {lookupState === "found" && recipientName && (
+            <div className="flex items-center gap-2 bg-green-500/10 border border-green-500/30 rounded-lg px-3 py-2">
+              <UserCheck className="w-4 h-4 text-green-400 shrink-0" />
+              <div>
+                <p className="text-green-300 text-sm font-semibold">{recipientName}</p>
+                <p className="text-green-500/70 text-xs">Compte DiasporaConnect vérifié</p>
+              </div>
+            </div>
+          )}
+
+          {lookupState === "not_found" && (
+            <div className="flex items-center gap-2 bg-red-500/10 border border-red-500/30 rounded-lg px-3 py-2">
+              <UserX className="w-4 h-4 text-red-400 shrink-0" />
+              <p className="text-red-300 text-xs">Aucun compte trouvé pour ce numéro</p>
+            </div>
+          )}
+
+          {lookupState === "idle" && (
+            <p className="text-slate-500 text-xs">
+              Le destinataire doit être inscrit sur DiasporaConnect
+            </p>
+          )}
         </div>
 
         <div className="space-y-2">
@@ -289,7 +361,7 @@ export default function Transfer() {
 
         <Button
           className="w-full h-12 text-base"
-          disabled={!recipientPhone || amount <= 0}
+          disabled={!recipientPhone || amount <= 0 || lookupState !== "found"}
           onClick={() => setStep("confirm")}
         >
           <Send className="w-4 h-4 mr-2" />

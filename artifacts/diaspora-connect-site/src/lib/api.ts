@@ -173,6 +173,13 @@ export const api = {
       true
     ),
 
+  lookupUser: (phone: string) =>
+    request<{ name: string; phone_number: string }>(
+      `/api/user/lookup?phone=${encodeURIComponent(phone)}`,
+      {},
+      true
+    ),
+
   setMode: (mode: "mock" | "devnet") =>
     request<ModeResponse>("/api/mode", {
       method: "POST",
