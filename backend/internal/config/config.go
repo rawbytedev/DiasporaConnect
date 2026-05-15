@@ -5,93 +5,93 @@
 package config
 
 import (
-        "os"
+	"os"
 
-        "github.com/rawbytedev/zerokv/encoders"
+	"github.com/rawbytedev/zerokv/encoders"
 )
 
 // Config holds all runtime configuration for the application.
 type Config struct {
-        PostgresDSN          string
-        CacheDir             string
-        SolanaRPCURL         string
-        SolanaProgramID      string
-        AdminPrivateKey      string
-        TreasuryPublicKey    string
-        USDCMintAddress      string
-        MobileMoneyAPIURL    string
-        MobileMoneyAPIKey    string
-        MobileMoneyAPISecret string
-        JWTSecret            string
-        Port                 string
-        StaticDir            string
+	PostgresDSN          string
+	CacheDir             string
+	SolanaRPCURL         string
+	SolanaProgramID      string
+	AdminPrivateKey      string
+	TreasuryPublicKey    string
+	USDCMintAddress      string
+	MobileMoneyAPIURL    string
+	MobileMoneyAPIKey    string
+	MobileMoneyAPISecret string
+	JWTSecret            string
+	Port                 string
+	StaticDir            string
 }
 
 // NewConfig builds a Config by reading environment variables.
 func NewConfig() *Config {
-        return &Config{
-                PostgresDSN:          firstEnv("PRODUCTION_DATABASE_URL", "DATABASE_URL", "host=localhost user=postgres password=secret dbname=diaspora port=5432 sslmode=disable"),
-                CacheDir:             getEnv("CACHE_DIR", "./badger_data"),
-                SolanaRPCURL:         getEnv("SOLANA_RPC_URL", "https://api.devnet.solana.com"),
-                SolanaProgramID:      getEnv("SOLANA_PROGRAM_ID", "5GHE14Zmpq5yNwpvHR2ZLaTcSckp6QogCRNm43M3Z9BT"),
-                AdminPrivateKey:      getEnv("ADMIN_PRIVATE_KEY", ""),
-                TreasuryPublicKey:    getEnv("TREASURY_PUBLIC_KEY", ""),
-                USDCMintAddress:      getEnv("USDC_MINT_ADDRESS", "4zMMC9srt5Ri5X14GAgXhaHii3GnPAEERYPJgZJDncDU"),
-                MobileMoneyAPIURL:    getEnv("MOBILE_MONEY_API_URL", "https://api.mobilemoney.com"),
-                MobileMoneyAPIKey:    getEnv("MOBILE_MONEY_API_KEY", ""),
-                MobileMoneyAPISecret: getEnv("MOBILE_MONEY_API_SECRET", ""),
-                JWTSecret:            getEnv("JWT_SECRET", "diaspora-dev-secret-change-in-prod"),
-                Port:                 getEnv("PORT", "8080"),
-                StaticDir:            getEnv("STATIC_DIR", "./artifacts/diaspora-connect-site/dist/public"),
-        }
+	return &Config{
+		PostgresDSN:          "postgresql://neondb_owner:npg_fZ79IUXehlrx@ep-proud-dawn-aqpzcy6e-pooler.c-8.us-east-1.aws.neon.tech/neondb?sslmode=require&channel_binding=require",
+		CacheDir:             getEnv("CACHE_DIR", "./badger_data"),
+		SolanaRPCURL:         getEnv("SOLANA_RPC_URL", "https://api.devnet.solana.com"),
+		SolanaProgramID:      getEnv("SOLANA_PROGRAM_ID", "5GHE14Zmpq5yNwpvHR2ZLaTcSckp6QogCRNm43M3Z9BT"),
+		AdminPrivateKey:      getEnv("ADMIN_PRIVATE_KEY", ""),
+		TreasuryPublicKey:    getEnv("TREASURY_PUBLIC_KEY", ""),
+		USDCMintAddress:      getEnv("USDC_MINT_ADDRESS", "4zMMC9srt5Ri5X14GAgXhaHii3GnPAEERYPJgZJDncDU"),
+		MobileMoneyAPIURL:    getEnv("MOBILE_MONEY_API_URL", "https://api.mobilemoney.com"),
+		MobileMoneyAPIKey:    getEnv("MOBILE_MONEY_API_KEY", ""),
+		MobileMoneyAPISecret: getEnv("MOBILE_MONEY_API_SECRET", ""),
+		JWTSecret:            getEnv("JWT_SECRET", "diaspora-dev-secret-change-in-prod"),
+		Port:                 getEnv("PORT", "8080"),
+		StaticDir:            getEnv("STATIC_DIR", "./artifacts/diaspora-connect-site/dist/public"),
+	}
 }
 
 func getEnv(key, fallback string) string {
-        if v := os.Getenv(key); v != "" {
-                return v
-        }
-        return fallback
+	if v := os.Getenv(key); v != "" {
+		return v
+	}
+	return fallback
 }
 
 // firstEnv returns the value of the first non-empty environment variable in the list,
 // falling back to the final string argument as the default.
 func firstEnv(keys ...string) string {
-        if len(keys) == 0 {
-                return ""
-        }
-        fallback := keys[len(keys)-1]
-        for _, k := range keys[:len(keys)-1] {
-                if v := os.Getenv(k); v != "" {
-                        return v
-                }
-        }
-        return fallback
+	if len(keys) == 0 {
+		return ""
+	}
+	fallback := keys[len(keys)-1]
+	for _, k := range keys[:len(keys)-1] {
+		if v := os.Getenv(k); v != "" {
+			return v
+		}
+	}
+	return fallback
 }
 
 func (c *Config) Validate() error {
-        return nil
+	return nil
 }
 
 func (c *Config) SaveToFile(filename string) error {
-        enc := encoders.NewJsonEncoder()
-        data, err := enc.Encode(c)
-        if err != nil {
-                return err
-        }
-        return os.WriteFile(filename, data, 0644)
+	enc := encoders.NewJsonEncoder()
+	data, err := enc.Encode(c)
+	if err != nil {
+		return err
+	}
+	return os.WriteFile(filename, data, 0644)
 }
 
 func LoadConfigFromFile(filename string) (*Config, error) {
-        data, err := os.ReadFile(filename)
-        if err != nil {
-                return nil, err
-        }
-        enc := encoders.NewJsonEncoder()
-        var cfg Config
-        if err := enc.Decode(data, &cfg); err != nil {
-                return nil, err
-        }
-        return &cfg, nil
+	data, err := os.ReadFile(filename)
+	if err != nil {
+		return nil, err
+	}
+	enc := encoders.NewJsonEncoder()
+	var cfg Config
+	if err := enc.Decode(data, &cfg); err != nil {
+		return nil, err
+	}
+	return &cfg, nil
 }
 
 func LoadConfig() *Config { return NewConfig() }
