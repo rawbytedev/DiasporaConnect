@@ -214,11 +214,11 @@ export default function Home() {
               <strong className="text-primary font-bold"> DiasporaConnect réduit ces frais à 1%.</strong>
             </p>
             <div className="pt-8 flex flex-col sm:flex-row items-center justify-center gap-4">
+              <Button size="lg" className="w-full sm:w-auto text-lg h-14 px-8 bg-accent hover:bg-accent/90 text-white shadow-lg shadow-accent/25" data-testid="btn-cta-mvp" onClick={() => navigate("/app/auth")}>
+                Commencez par utiliser notre MVP <ArrowRight className="ml-2 w-5 h-5" />
+              </Button>
               <Button size="lg" className="w-full sm:w-auto text-lg h-14 px-8" data-testid="btn-cta-primary" onClick={() => navigate("/demo")}>
                 Essayer le simulateur <ArrowDownToLine className="ml-2 w-5 h-5" />
-              </Button>
-              <Button size="lg" variant="outline" className="w-full sm:w-auto text-lg h-14 px-8 border-slate-300 text-slate-700 hover:bg-slate-50" data-testid="btn-cta-secondary" onClick={() => document.getElementById("app-preview")?.scrollIntoView({ behavior: "smooth" })}>
-                Voir l'appli en action
               </Button>
             </div>
           </div>
@@ -422,9 +422,14 @@ export default function Home() {
         <div className="container mx-auto px-4 text-center">
           <h2 className="text-3xl font-bold text-white mb-6">Prêt à changer les choses ?</h2>
           <p className="mb-10 max-w-2xl mx-auto text-lg">Rejoignez le mouvement pour une finance plus juste. Votre premier transfert est gratuit.</p>
-          <Button size="lg" className="h-14 px-8 text-lg bg-primary hover:bg-primary/90 text-white border-none shadow-lg mb-16" data-testid="btn-footer-cta" onClick={() => navigate("/demo")}>
-            Essayer la démo complète <ChevronRight className="ml-2 w-5 h-5" />
-          </Button>
+          <div className="flex flex-col sm:flex-row gap-4 justify-center mb-16">
+            <Button size="lg" className="h-14 px-8 text-lg bg-accent hover:bg-accent/90 text-white border-none shadow-lg" data-testid="btn-footer-mvp" onClick={() => navigate("/app/auth")}>
+              Commencez par utiliser notre MVP <ArrowRight className="ml-2 w-5 h-5" />
+            </Button>
+            <Button size="lg" className="h-14 px-8 text-lg bg-primary hover:bg-primary/90 text-white border-none shadow-lg" data-testid="btn-footer-cta" onClick={() => navigate("/demo")}>
+              Essayer la démo complète <ChevronRight className="ml-2 w-5 h-5" />
+            </Button>
+          </div>
           
           <div className="pt-8 border-t border-slate-800 flex flex-col md:flex-row items-center justify-between gap-4 text-sm">
             <div className="flex items-center gap-2 text-slate-300 font-bold text-xl">
