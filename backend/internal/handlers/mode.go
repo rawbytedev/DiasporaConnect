@@ -2,21 +2,10 @@ package handlers
 
 import (
 	"Diaspora/internal/middleware"
+	"Diaspora/internal/solana"
 	"encoding/json"
 	"net/http"
-	"sync/atomic"
 )
-
-var runtimeMode atomic.Int32
-
-const (
-	ModeMock   int32 = 0
-	ModeDevnet int32 = 1
-)
-
-func init() {
-	runtimeMode.Store(ModeDevnet)
-}
 
 type ModeRequest struct {
 	Mode string `json:"mode"`
@@ -29,24 +18,11 @@ func SetRuntimeMode() http.HandlerFunc {
 			middleware.JSONError(w, http.StatusBadRequest, "invalid JSON body")
 			return
 		}
-
-		switch req.Mode {
-		case "mock":
-			runtimeMode.Store(ModeMock)
-		case "devnet":
-			runtimeMode.Store(ModeDevnet)
-		default:
+		if req.Mode != "mock" && req.Mode != "devnet" {
 			middleware.JSONError(w, http.StatusBadRequest, "mode must be mock or devnet")
 			return
 		}
-
-		middleware.JSONResponse(w, http.StatusOK, map[string]string{"mode": req.Mode})
+		solana.SetRuntimeMode(req.Mode)
+		middleware.JSONResponse(w, http.StatusOK, map[string]string{"mode": solana.CurrentRuntimeMode()})
 	}
-}
-
-func CurrentRuntimeMode() string {
-	if runtimeMode.Load() == ModeMock {
-		return "mock"
-	}
-	return "devnet"
 }
