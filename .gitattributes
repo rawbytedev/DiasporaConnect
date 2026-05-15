@@ -6,3 +6,7 @@ badger_data/000003.vlog filter=lfs diff=lfs merge=lfs -text
 badger_data/00003.mem filter=lfs diff=lfs merge=lfs -text
 artifacts/api-server/badger_data/000001.vlog filter=lfs diff=lfs merge=lfs -text
 artifacts/api-server/badger_data/00001.mem filter=lfs diff=lfs merge=lfs -text
+artifacts/api-server/badger_data/000002.vlog filter=lfs diff=lfs merge=lfs -text
+artifacts/api-server/badger_data/00002.mem filter=lfs diff=lfs merge=lfs -text
+badger_data/000004.vlog filter=lfs diff=lfs merge=lfs -text
+badger_data/00004.mem filter=lfs diff=lfs merge=lfs -text
