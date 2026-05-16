@@ -16,7 +16,7 @@ import { api, BalanceResponse, Transfer } from "@/lib/api";
 import { useToast } from "@/hooks/use-toast";
 import { fmtNum } from "@/lib/fmt";
 
-function statusBadge(status: Transfer["Status"]) {
+function statusBadge(status: Transfer["status"]) {
   const map = {
     pending: "bg-yellow-500/20 text-yellow-300 border border-yellow-500/30",
     claimed: "bg-green-500/20 text-green-300 border border-green-500/30",
@@ -73,7 +73,7 @@ export default function Dashboard() {
   }, []);
 
   const pendingReceived = transfers.filter(
-    (t) => t.RecipientID === account?.id && t.Status === "pending"
+    (t) => t.recipient_id === account?.id && t.status === "pending"
   );
 
   return (
@@ -162,16 +162,16 @@ export default function Dashboard() {
           <CardContent className="pb-4 space-y-2">
             {pendingReceived.map((t) => (
               <div
-                key={t.ID}
+                key={t.id}
                 className="flex items-center justify-between bg-slate-900/50 rounded-lg px-3 py-2"
               >
                 <div>
                   <p className="text-white text-sm font-semibold">
-                    {fmtNum(t.AmountUSDT)} USDT
+                    {fmtNum(t.amount_usdt)} USDT
                   </p>
                   <p className="text-slate-400 text-xs">
                     Expire{" "}
-                    {new Date(t.ExpiresAt).toLocaleDateString("fr-FR")}
+                    {new Date(t.expires_at).toLocaleDateString("fr-FR")}
                   </p>
                 </div>
                 <Button
@@ -225,10 +225,10 @@ export default function Dashboard() {
           ) : (
             <div className="space-y-2">
               {transfers.map((t) => {
-                const isSender = t.SenderID === account?.id;
+                const isSender = t.sender_id === account?.id;
                 return (
                   <div
-                    key={t.ID}
+                    key={t.id}
                     className="flex items-center justify-between bg-slate-800/50 rounded-lg px-3 py-3"
                   >
                     <div className="flex items-center gap-3">
@@ -250,7 +250,7 @@ export default function Dashboard() {
                           {isSender ? "Envoyé" : "Reçu"}
                         </p>
                         <p className="text-slate-500 text-xs">
-                          {new Date(t.CreatedAt).toLocaleDateString("fr-FR")}
+                          {new Date(t.created_at).toLocaleDateString("fr-FR")}
                         </p>
                       </div>
                     </div>
@@ -261,9 +261,9 @@ export default function Dashboard() {
                         }`}
                       >
                         {isSender ? "-" : "+"}
-                        {fmtNum(t.AmountUSDT)} USDT
+                        {fmtNum(t.amount_usdt)} USDT
                       </p>
-                      {statusBadge(t.Status)}
+                      {statusBadge(t.status)}
                     </div>
                   </div>
                 );

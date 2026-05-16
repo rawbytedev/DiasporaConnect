@@ -58,19 +58,19 @@ export interface BalanceResponse {
 }
 
 export interface Transfer {
-  ID: number;
-  SenderID: number;
-  RecipientID: number;
-  AmountUSDT: number;
-  FeesUSDT: number;
-  Status: "pending" | "claimed" | "refunded";
-  SolanaTxHash: string;
-  Note?: string;
-  CreatedAt: string;
-  ExpiresAt: string;
-  ClaimedAt: string | null;
-  RecipientPhone?: string;
-  SenderPhone?: string;
+  id: number;
+  sender_id: number;
+  recipient_id: number;
+  amount_usdt: number;
+  fees_usdt: number;
+  status: "pending" | "claimed" | "refunded";
+  solana_tx_hash: string;
+  note?: string;
+  created_at: string;
+  expires_at: string;
+  claimed_at: string | null;
+  recipient_phone?: string;
+  sender_phone?: string;
 }
 
 export interface TransfersResponse {

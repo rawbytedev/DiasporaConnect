@@ -130,8 +130,8 @@ export default function Transfer() {
     async function check() {
       try {
         const t = await api.getTransfer(transferId);
-        if (t.Status !== "pending") {
-          setLiveStatus(t.Status);
+        if (t.status !== "pending") {
+          setLiveStatus(t.status);
           if (pollRef.current) clearTimeout(pollRef.current);
           return;
         }

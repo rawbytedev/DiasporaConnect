@@ -24,13 +24,13 @@ import { useAuth } from "@/context/AuthContext";
 import { useToast } from "@/hooks/use-toast";
 import { fmtNum } from "@/lib/fmt";
 
-function StatusIcon({ status }: { status: Transfer["Status"] }) {
+function StatusIcon({ status }: { status: Transfer["status"] }) {
   if (status === "pending") return <Clock className="w-4 h-4 text-yellow-400" />;
   if (status === "claimed") return <CheckCircle2 className="w-4 h-4 text-green-400" />;
   return <XCircle className="w-4 h-4 text-slate-400" />;
 }
 
-function statusLabel(status: Transfer["Status"]) {
+function statusLabel(status: Transfer["status"]) {
   return { pending: "En attente", claimed: "Réclamé", refunded: "Remboursé" }[status];
 }
 
@@ -102,14 +102,14 @@ interface DetailModalProps {
 function DetailModal({ transfer, accountId, onClose, onAction }: DetailModalProps) {
   const { toast } = useToast();
   const [loading, setLoading] = useState(false);
-  const isSender = transfer.SenderID === accountId;
-  const isRecipient = transfer.RecipientID === accountId;
-  const expired = new Date(transfer.ExpiresAt) < new Date();
+  const isSender = transfer.sender_id === accountId;
+  const isRecipient = transfer.recipient_id === accountId;
+  const expired = new Date(transfer.expires_at) < new Date();
 
   async function claim() {
     setLoading(true);
     try {
-      await api.claimTransfer(transfer.ID);
+      await api.claimTransfer(transfer.id);
       toast({ title: "Transfert réclamé !" });
       onAction();
     } catch (err) {
@@ -122,7 +122,7 @@ function DetailModal({ transfer, accountId, onClose, onAction }: DetailModalProp
   async function refund() {
     setLoading(true);
     try {
-      await api.refundTransfer(transfer.ID);
+      await api.refundTransfer(transfer.id);
       toast({ title: "Remboursement initié !" });
       onAction();
     } catch (err) {
@@ -139,73 +139,73 @@ function DetailModal({ transfer, accountId, onClose, onAction }: DetailModalProp
     >
       <div className="bg-slate-900 border border-slate-800 rounded-2xl w-full max-w-md p-6 space-y-4">
         <div className="flex items-center justify-between">
-          <h2 className="text-white font-bold text-lg">Transfert #{transfer.ID}</h2>
+          <h2 className="text-white font-bold text-lg">Transfert #{transfer.id}</h2>
           <button onClick={onClose} className="text-slate-400 hover:text-white text-xl">×</button>
         </div>
 
         <div className="space-y-3 text-sm">
           <div className="flex justify-between">
             <span className="text-slate-400">Montant</span>
-            <span className="text-white font-bold">{fmtNum(transfer.AmountUSDT)} USDT</span>
+            <span className="text-white font-bold">{fmtNum(transfer.amount_usdt)} USDT</span>
           </div>
           <div className="flex justify-between">
             <span className="text-slate-400">Frais</span>
-            <span className="text-red-400">{fmtNum(transfer.FeesUSDT)} USDT</span>
+            <span className="text-red-400">{fmtNum(transfer.fees_usdt)} USDT</span>
           </div>
           <div className="flex justify-between">
             <span className="text-slate-400">Statut</span>
-            <span className="text-white">{statusLabel(transfer.Status)}</span>
+            <span className="text-white">{statusLabel(transfer.status)}</span>
           </div>
           <div className="flex justify-between">
             <span className="text-slate-400">Rôle</span>
             <span className="text-white">{isSender ? "Expéditeur" : "Destinataire"}</span>
           </div>
-          {transfer.Note && (
+          {transfer.note && (
             <div className="bg-slate-800/60 rounded-lg px-3 py-2">
               <div className="flex items-center gap-1.5 text-slate-400 text-xs mb-1">
                 <MessageSquareText className="w-3 h-3" />
                 Message
               </div>
-              <p className="text-white text-sm">{transfer.Note}</p>
+              <p className="text-white text-sm">{transfer.note}</p>
             </div>
           )}
           <div className="flex justify-between">
             <span className="text-slate-400">Créé le</span>
-            <span className="text-white">{new Date(transfer.CreatedAt).toLocaleString("fr-FR")}</span>
+            <span className="text-white">{new Date(transfer.created_at).toLocaleString("fr-FR")}</span>
           </div>
           <div className="flex justify-between">
             <span className="text-slate-400">Expire le</span>
             <span className={expired ? "text-red-400" : "text-white"}>
-              {new Date(transfer.ExpiresAt).toLocaleDateString("fr-FR")}
+              {new Date(transfer.expires_at).toLocaleDateString("fr-FR")}
               {expired && " (expiré)"}
             </span>
           </div>
-          {transfer.Status === "pending" && (
+          {transfer.status === "pending" && (
             <div>
               <span className="text-slate-400">Temps restant</span>
-              <ExpiryBar expiresAt={transfer.ExpiresAt} />
+              <ExpiryBar expiresAt={transfer.expires_at} />
             </div>
           )}
-          {transfer.ClaimedAt && (
+          {transfer.claimed_at && (
             <div className="flex justify-between">
               <span className="text-slate-400">Réclamé le</span>
-              <span className="text-green-400">{new Date(transfer.ClaimedAt).toLocaleString("fr-FR")}</span>
+              <span className="text-green-400">{new Date(transfer.claimed_at).toLocaleString("fr-FR")}</span>
             </div>
           )}
           <div className="border-t border-slate-800 pt-3">
             <p className="text-slate-400 text-xs mb-2">TX Hash</p>
             <div className="flex items-center gap-2 bg-slate-800 rounded-lg px-3 py-2">
               <code className="text-primary text-xs font-mono flex-1 truncate">
-                {transfer.SolanaTxHash}
+                {transfer.solana_tx_hash}
               </code>
               <button
-                onClick={() => { navigator.clipboard.writeText(transfer.SolanaTxHash); toast({ title: "Copié !" }); }}
+                onClick={() => { navigator.clipboard.writeText(transfer.solana_tx_hash); toast({ title: "Copié !" }); }}
                 className="text-slate-400 hover:text-white"
               >
                 <Copy className="w-3.5 h-3.5" />
               </button>
               <a
-                href={`https://explorer.solana.com/tx/${transfer.SolanaTxHash}?cluster=devnet`}
+                href={`https://explorer.solana.com/tx/${transfer.solana_tx_hash}?cluster=devnet`}
                 target="_blank"
                 rel="noopener noreferrer"
                 className="text-slate-400 hover:text-primary"
@@ -216,12 +216,12 @@ function DetailModal({ transfer, accountId, onClose, onAction }: DetailModalProp
           </div>
         </div>
 
-        {transfer.Status === "pending" && isRecipient && (
+        {transfer.status === "pending" && isRecipient && (
           <Button className="w-full" onClick={claim} disabled={loading}>
             {loading ? "Traitement…" : "Réclamer ce transfert"}
           </Button>
         )}
-        {transfer.Status === "pending" && isSender && expired && (
+        {transfer.status === "pending" && isSender && expired && (
           <Button variant="outline" className="w-full border-red-500/30 text-red-400 hover:bg-red-500/10" onClick={refund} disabled={loading}>
             {loading ? "Traitement…" : "Demander un remboursement"}
           </Button>
@@ -314,10 +314,10 @@ export default function History() {
       ) : (
         <div className="space-y-2">
           {transfers.map((t) => {
-            const isSender = t.SenderID === account?.id;
+            const isSender = t.sender_id === account?.id;
             return (
               <button
-                key={t.ID}
+                key={t.id}
                 className="w-full text-left bg-slate-900 border border-slate-800 hover:border-slate-700 rounded-xl px-4 py-3 flex items-center gap-3 transition"
                 onClick={() => setSelected(t)}
               >
@@ -329,23 +329,23 @@ export default function History() {
                     <p className="text-white text-sm font-semibold">
                       {isSender ? "Envoyé" : "Reçu"}
                     </p>
-                    <StatusIcon status={t.Status} />
-                    {t.Note && (
+                    <StatusIcon status={t.status} />
+                    {t.note && (
                       <MessageSquareText className="w-3 h-3 text-slate-500" />
                     )}
                   </div>
                   <p className="text-slate-500 text-xs truncate">
-                    {new Date(t.CreatedAt).toLocaleDateString("fr-FR")} · #{t.ID}
+                    {new Date(t.created_at).toLocaleDateString("fr-FR")} · #{t.id}
                   </p>
-                  {t.Status === "pending" && (
-                    <ExpiryBar expiresAt={t.ExpiresAt} />
+                  {t.status === "pending" && (
+                    <ExpiryBar expiresAt={t.expires_at} />
                   )}
                 </div>
                 <div className="text-right shrink-0">
                   <p className={`text-sm font-bold ${isSender ? "text-red-400" : "text-green-400"}`}>
-                    {isSender ? "-" : "+"}{fmtNum(t.AmountUSDT)} USDT
+                    {isSender ? "-" : "+"}{fmtNum(t.amount_usdt)} USDT
                   </p>
-                  <p className="text-slate-500 text-xs">{statusLabel(t.Status)}</p>
+                  <p className="text-slate-500 text-xs">{statusLabel(t.status)}</p>
                 </div>
               </button>
             );
