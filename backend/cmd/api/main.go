@@ -92,7 +92,7 @@ func main() {
                 middleware.JSONResponse(w, http.StatusOK, map[string]string{"status": "ok"})
         })
         mux.HandleFunc("/api/account", middleware.AuthMiddleware(handlers.GetAccount(userRepo)))
-        mux.HandleFunc("/api/balance", middleware.AuthMiddleware(handlers.GetBalance(userRepo, solClient)))
+        mux.HandleFunc("/api/balance", middleware.AuthMiddleware(handlers.GetBalance(userRepo, transferRepo)))
         mux.HandleFunc("/api/transfers", middleware.AuthMiddleware(handlers.GetTransfers(transferRepo)))
         mux.HandleFunc("/api/transfers/detail", middleware.AuthMiddleware(handlers.GetTransfer(transferRepo)))
         mux.HandleFunc("/api/transfer", middleware.AuthMiddleware(handlers.SendTransfer(userRepo, transferRepo, solClient)))

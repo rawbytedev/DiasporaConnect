@@ -169,6 +169,12 @@ export default function Transfer() {
       const msg = (err as Error).message;
       if (msg.includes("kyc_required")) {
         setStep("kyc_required");
+      } else if (msg.includes("insufficient_balance")) {
+        toast({
+          title: "Solde insuffisant",
+          description: "Vous n'avez pas assez de USDT pour effectuer ce transfert.",
+          variant: "destructive",
+        });
       } else {
         toast({
           title: "Erreur de transfert",
