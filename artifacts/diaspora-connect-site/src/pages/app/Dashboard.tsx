@@ -261,7 +261,7 @@ export default function Dashboard() {
                         }`}
                       >
                         {isSender ? "-" : "+"}
-                        {fmtNum(t.amount_usdt)} USDT
+                        {fmtNum(isSender ? t.amount_usdt + t.fees_usdt : t.amount_usdt)} USDT
                       </p>
                       {statusBadge(t.status)}
                     </div>

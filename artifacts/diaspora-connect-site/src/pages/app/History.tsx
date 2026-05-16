@@ -144,14 +144,27 @@ function DetailModal({ transfer, accountId, onClose, onAction }: DetailModalProp
         </div>
 
         <div className="space-y-3 text-sm">
-          <div className="flex justify-between">
-            <span className="text-slate-400">Montant</span>
-            <span className="text-white font-bold">{fmtNum(transfer.amount_usdt)} USDT</span>
-          </div>
-          <div className="flex justify-between">
-            <span className="text-slate-400">Frais</span>
-            <span className="text-red-400">{fmtNum(transfer.fees_usdt)} USDT</span>
-          </div>
+          {isSender ? (
+            <>
+              <div className="flex justify-between">
+                <span className="text-slate-400">Montant total débité</span>
+                <span className="text-white font-bold">{fmtNum(transfer.amount_usdt + transfer.fees_usdt)} USDT</span>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-slate-400">Dont frais (1%)</span>
+                <span className="text-red-400">−{fmtNum(transfer.fees_usdt)} USDT</span>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-slate-400">Reçu par le destinataire</span>
+                <span className="text-slate-300">{fmtNum(transfer.amount_usdt)} USDT</span>
+              </div>
+            </>
+          ) : (
+            <div className="flex justify-between">
+              <span className="text-slate-400">Montant reçu</span>
+              <span className="text-white font-bold">{fmtNum(transfer.amount_usdt)} USDT</span>
+            </div>
+          )}
           <div className="flex justify-between">
             <span className="text-slate-400">Statut</span>
             <span className="text-white">{statusLabel(transfer.status)}</span>
@@ -343,7 +356,7 @@ export default function History() {
                 </div>
                 <div className="text-right shrink-0">
                   <p className={`text-sm font-bold ${isSender ? "text-red-400" : "text-green-400"}`}>
-                    {isSender ? "-" : "+"}{fmtNum(t.amount_usdt)} USDT
+                    {isSender ? "-" : "+"}{fmtNum(isSender ? t.amount_usdt + t.fees_usdt : t.amount_usdt)} USDT
                   </p>
                   <p className="text-slate-500 text-xs">{statusLabel(t.status)}</p>
                 </div>
